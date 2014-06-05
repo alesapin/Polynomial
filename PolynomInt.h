@@ -9,7 +9,8 @@
 #include <initializer_list>
 #include <type_traits>
 #include <stdexcept> 
-
+#include <typeinfo>
+#include <fstream>
 #define REAL 0
 #define IMAG 1
 typedef fftw_complex complex;
@@ -52,7 +53,7 @@ public:
 
 	void reduce(){reduce(gcd());};
 	int border() const {return coefficients.size();};	
-	Polynom<T> operator()(T); //theta(n)
+	T operator()(const T&); //theta(n)
 	Polynom<T> derivate(std::size_t); //theta(n)
 	
 	template <typename U>

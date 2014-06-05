@@ -31,7 +31,15 @@ Polynom(int size,T *data){
 		coefficients[i]=data[i];
 	}
 }
-
+template<typename T> 
+T Polynom<T,typename std::enable_if<std::is_integral<T>::value>::type>::
+operator()(const T& n){
+	T result=coefficients[border()-1];
+	for(int i=border()-2;i>=0;--i){
+		result=result*n+coefficients[i];
+	}
+	return result;
+}
 template<typename T> 
 Polynom<T>& Polynom<T,typename std::enable_if<std::is_integral<T>::value>::type>::
 operator=(const Polynom<T>& a){
@@ -61,20 +69,49 @@ std::ostream& operator<<(std::ostream& os,const Polynom<U>& a){
 		os<<a.coefficients[i];
 		return os;
 	}
-	os<<a.coefficients[i]<<'x'<<a.sup(i);
-	--i;
-	for(;i>1;--i){
-		if(a.coefficients[i]>0) os<<" + "<<a.coefficients[i]<<'x'<<a.sup(i);
-		else if(a.coefficients[i]<0) os<<" - "<<abs(a.coefficients[i])<<'x'<<a.sup(i);
+	else if(i==1){ 
+		if(a.coefficients[i]==-1) os<<"-";
+		else if(a.coefficients[i]!=1) os<<a.coefficients[i];
+		os<<'x';
+		if(a.coefficients[i-1]>0) os<<" + ";
+		if(a.coefficients[i-1]<0) os<<" - ";
+		os<<abs(a.coefficients[i]);
+		return os;
+	}
+	if(a.coefficients[i]==-1) os<<"-";
+	else if(a.coefficients[i]!=1) os<<a.coefficients[i];
+	if(typeid(os)==typeid(std::ofstream)){
+		os<<"x^"<<i;
+		--i;
+		for(;i>1;--i){
+			if(a.coefficients[i]>0) os<<" + ";
+			else if(a.coefficients[i]<0) os<<" - ";
+			if(abs(a.coefficients[i])!=1 && a.coefficients[i]!=0){
+			 	os<<abs(a.coefficients[i]);
+				os<<"x^"<<i;
+			}
+		}
+	}else{
+		os<<'x'<<a.sup(i);
+		--i;
+		for(;i>1;--i){
+			if(a.coefficients[i]>0) os<<" + ";
+			else if(a.coefficients[i]<0) os<<" - ";
+			if(abs(a.coefficients[i])!=1 && a.coefficients[i]!=0){
+			 	os<<abs(a.coefficients[i]);
+				os<<"x"<<a.sup(i);
+			}
+		}
 	}
 	if(i>0){
-		if(a.coefficients[i]>0) os<<" + "<<a.coefficients[i--]<<'x';
-		else if(a.coefficients[i]<0) os<<" - "<<abs(a.coefficients[i--])<<'x';
+		if(a.coefficients[i]>0) os<<" + ";
+		else if(a.coefficients[i]<0) os<<" - ";
+		if(abs(a.coefficients[i]!=1)) os<<abs(a.coefficients[i--]);
+		os<<'x';
 	}
 	if(a.coefficients[i]>0) os<<" + "<<a.coefficients[i];
 	else if(a.coefficients[i]<0) os<<" - "<<abs(a.coefficients[i]);
 	return os;
-
 }
 
 template<typename T> 
@@ -122,8 +159,7 @@ operator-(Polynom<T> other){
 template<typename T> 
 Polynom<T> Polynom<T,typename std::enable_if<std::is_integral<T>::value>::type>::
 operator-(){
-	Polynom<T> result;
-	result.coefficients.resize(coefficients.size());
+	Polynom<T> result(*this);
 	return result*-1;
 }
 
@@ -229,7 +265,7 @@ euclidian(const Polynom<T>& other) const{
 template<typename T> 
 bool Polynom<T,typename std::enable_if<std::is_integral<T>::value>::type>::
 operator==(const Polynom<T>& other){
-	if(border()==other.border()) return false;
+	if(border()!=other.border()) return false;
 	for(int i=0;i<border();++i){
 		if(coefficients[i]!=other.coefficients[i]) return false;
 	}
@@ -237,6 +273,9 @@ operator==(const Polynom<T>& other){
 }
 template<typename U,typename std::enable_if<std::is_integral<U>::value,int>::type=0> 
 Polynom<U> gcd(const Polynom<U>& first, const Polynom<U>& second){
+	int f=first.border();
+	int s=second.border();
+	if(f>s || (f==s && first.coefficients[f-1]<second.coefficients[s-1])) return gcd(second,first);
 	Polynom<U> u(first);
 	Polynom<U> v(second);
 	Polynom<U> t;
@@ -311,9 +350,11 @@ sup(int num) const{
     return result;
 }
 int main(){
-	Polynom<long> a{12,-4,-9,0,1};
-	Polynom<long> b{-8,2,5,1,2};
-	std::cout<<gcd(a,b)<<'\n';
-
+	Polynom<long> a{-3,5,-6,1};
+	Polynom<long> c{1,5,4,67,8,3,4,5,654,24};
+	Polynom<long> b=a;
+	std::cout<<(b==a)<<'\n';
+	b=b*2;
+	std::cout<<a(6)<<'\n';
 	return 0;
 }

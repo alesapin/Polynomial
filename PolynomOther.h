@@ -28,7 +28,7 @@ public:
 
 	Polynom<T> operator%(const Polynom<T>& o) const{return euclidian(o).second;}; //O((n-m)*m)	
 	Polynom<T>& operator%=(const Polynom<T>& o){return *this=*this%o;};
-	Polynom<T> operator()(T); //theta(n)
+	T operator()(const T&); //theta(n)
 	Polynom<T> derivate(std::size_t); //theta(n)
 	int border() const {return coefficients.size();};	
 	
